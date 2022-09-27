@@ -5,7 +5,7 @@
 
 using namespace std;
 
-char hex(std::string bits) {
+char bin_hex(std::string bits) {
 	std::map<std::string, char> hex_bits = {
 		{"0000", '0'}, {"0001", '1'}, {"0010", '2'}, {"0011", '3'},
 		{"0100", '4'}, {"0101", '5'}, {"0110", '6'}, {"0111", '7'},
@@ -15,7 +15,7 @@ char hex(std::string bits) {
 	return hex_bits[bits];
 }
 
-std::string to_bits(unsigned char ch) {
+std::string byte_bin(unsigned char ch) {
 	std::string bits = "";
 	for (int i = 0; i < 8; i++) {
 		char bit = ((bool)(ch << i & 0b10000000) + '0');
@@ -25,7 +25,6 @@ std::string to_bits(unsigned char ch) {
 }
 
 int main() {
-	char buffer[32];
 	std::ifstream infile("test3.txt");
 
 	//get length of file
@@ -33,22 +32,20 @@ int main() {
 	size_t length = infile.tellg();
 	infile.seekg(0, std::ios::beg);
 
-	// don't overflow the buffer!
-	if (length > sizeof(buffer))
-	{
-		length = sizeof(buffer);
-	}
+	char* buffer = new char[length];
 
 	//read file
 	infile.read(buffer, length);
 
 	std::cout << length << std::endl;
 
-	for (int i = 0; i < 32; i++) {
+	for (int i = 0; i < length; i++) {
 		if (i == 16) std::cout << std::endl;
-		auto bits = to_bits(buffer[i]);
-		std::cout << hex(bits.substr(0, 4)) << hex(bits.substr(4, 4)) << " ";
+		auto bits = byte_bin(buffer[i]);
+		std::cout << bin_hex(bits.substr(0, 4)) << bin_hex(bits.substr(4, 4)) << " ";
 	}
+
+	delete buffer;
 
 	return 0;
 }
