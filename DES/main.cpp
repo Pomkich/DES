@@ -2,7 +2,7 @@
 #include <fstream>
 #include <string>
 #include <map>
-#include "tables.h"
+#include "constants.h"
 
 using namespace std;
 
@@ -26,22 +26,19 @@ std::string byte_bin(unsigned char ch) {
 }
 
 // добавление битов четности в исходный ключ
-std::string add_key_bits(std::string& key) {
-	std::string expanded_key;
+void add_key_bits(std::string& key) {
 	for (int i = 0; i < 8; i++) {
 		auto substr = key.substr(i * 8, 7);
 		if (std::count(substr.begin(), substr.end(), '1') % 2 != 1)
-			substr.push_back('1');
+			key.insert(key.begin() + (i * 8) + 7, '1');
 		else
-			substr.push_back('0');
-		expanded_key += substr;
+			key.insert(key.begin() + (i * 8) + 7, '0');
 	}
-	return expanded_key;
 }
 
 // первая перестановка исходного блока текста
 std::string permutate_P(std::string bits) {
-	std::string perm_bits = "0000000000000000000000000000000000000000000000000000000000000000";
+	std::string perm_bits(block_size, '0');
 	for (int i = 0; i < 4; i++) {
 		for (int j = 0; j < 16; j++) {
 			perm_bits[i * 16 + j] = bits[P[i][j]];
@@ -50,16 +47,28 @@ std::string permutate_P(std::string bits) {
 	return perm_bits;
 }
 
+std::string permutate_key(std::string key) {
+	std::string perm_key(start_key_size, '0');
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 14; j++) {
+			perm_key[i * 14 + j] = key[key_perm_table[i][j]];
+		}
+	}
+	return perm_key;
+}
+
 int main() {
 	std::string bits = "1111111111111111111111111111111100000000000000000000000000000000";
 	bits = permutate_P(bits);
-	//std::cout << bits;
 
 	std::string key = "10101010101010101010101010101010101010101010101010101010";
-	key = add_key_bits(key);
-	/*for (int i = 1; i <= 8; i++) {
-		key.insert(key.begin() + i * 8, ' ');
-	}*/
+	add_key_bits(key);
+	std::cout << key.size();
+
+	key = permutate_key(key);
+
+	std::cout << key.size() << std::endl;
+	
 	std::cout << key;
 
 	return 0;
