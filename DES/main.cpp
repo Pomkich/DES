@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <map>
+#include <bitset>
 #include "constants.h"
 
 using namespace std;
@@ -25,6 +26,30 @@ std::string byte_bin(unsigned char ch) {
 	return bits;
 }
 
+unsigned char* permutate_P(unsigned char block[8]) {
+	unsigned char perm_block[8];
+	memset(perm_block, 0, 8);
+	for (int i = 0; i < 64; i++) {
+		int offset_byte = (P[i / 16][i % 16] - 1) / 8;
+		int offset_bit = (P[i / 16][i % 16] - 1) % 8;
+		int bit = ((block[offset_byte] << offset_bit) & 0b10000000);
+		perm_block[i / 8] |= ((0b10000000 & bit) >> (i % 8));
+	}
+	return perm_block;
+}
+
+int main() {
+	unsigned char block[8] = {
+		0b00000000, 0b00000000, 0b00000000, 0b00000000,
+		0b11111111, 0b11111111, 0b11111111, 0b11111111
+	};
+
+	auto new_block = permutate_P(block);
+
+	return 0;
+}
+
+/*
 // добавление битов четности в исходный ключ
 void add_key_bits(std::string& key) {
 	for (int i = 0; i < 8; i++) {
@@ -57,22 +82,8 @@ std::string permutate_key(std::string key) {
 	return perm_key;
 }
 
-int main() {
-	std::string bits = "1111111111111111111111111111111100000000000000000000000000000000";
-	bits = permutate_P(bits);
 
-	std::string key = "10101010101010101010101010101010101010101010101010101010";
-	add_key_bits(key);
-	std::cout << key.size();
-
-	key = permutate_key(key);
-
-	std::cout << key.size() << std::endl;
-	
-	std::cout << key;
-
-	return 0;
-}
+*/
 
 /*	// read file
 std::ifstream infile("test.txt");
