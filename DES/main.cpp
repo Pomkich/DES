@@ -25,6 +25,21 @@ std::string byte_bin(unsigned char ch) {
 	return bits;
 }
 
+// добавление битов четности в исходный ключ
+std::string add_key_bits(std::string& key) {
+	std::string expanded_key;
+	for (int i = 0; i < 8; i++) {
+		auto substr = key.substr(i * 8, 7);
+		if (std::count(substr.begin(), substr.end(), '1') % 2 != 1)
+			substr.push_back('1');
+		else
+			substr.push_back('0');
+		expanded_key += substr;
+	}
+	return expanded_key;
+}
+
+// первая перестановка исходного блока текста
 std::string permutate_P(std::string bits) {
 	std::string perm_bits = "0000000000000000000000000000000000000000000000000000000000000000";
 	for (int i = 0; i < 4; i++) {
@@ -38,7 +53,14 @@ std::string permutate_P(std::string bits) {
 int main() {
 	std::string bits = "1111111111111111111111111111111100000000000000000000000000000000";
 	bits = permutate_P(bits);
-	std::cout << bits;
+	//std::cout << bits;
+
+	std::string key = "10101010101010101010101010101010101010101010101010101010";
+	key = add_key_bits(key);
+	/*for (int i = 1; i <= 8; i++) {
+		key.insert(key.begin() + i * 8, ' ');
+	}*/
+	std::cout << key;
 
 	return 0;
 }
