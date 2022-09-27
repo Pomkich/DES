@@ -2,11 +2,12 @@
 #include <fstream>
 #include <string>
 #include <map>
+#include "tables.h"
 
 using namespace std;
 
 char bin_hex(std::string bits) {
-	std::map<std::string, char> hex_bits = {
+	static std::map<std::string, char> hex_bits = {	// for better perfomance static
 		{"0000", '0'}, {"0001", '1'}, {"0010", '2'}, {"0011", '3'},
 		{"0100", '4'}, {"0101", '5'}, {"0110", '6'}, {"0111", '7'},
 		{"1000", '8'}, {"1001", '9'}, {"1010", 'A'}, {"1011", 'B'},
@@ -24,8 +25,26 @@ std::string byte_bin(unsigned char ch) {
 	return bits;
 }
 
+std::string permutate_P(std::string bits) {
+	std::string perm_bits = "0000000000000000000000000000000000000000000000000000000000000000";
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 16; j++) {
+			perm_bits[i * 16 + j] = bits[P[i][j]];
+		}
+	}
+	return perm_bits;
+}
+
 int main() {
-	std::ifstream infile("test3.txt");
+	std::string bits = "1111111111111111111111111111111100000000000000000000000000000000";
+	bits = permutate_P(bits);
+	std::cout << bits;
+
+	return 0;
+}
+
+/*	// read file
+std::ifstream infile("test.txt");
 
 	//get length of file
 	infile.seekg(0, std::ios::end);
@@ -45,7 +64,4 @@ int main() {
 		std::cout << bin_hex(bits.substr(0, 4)) << bin_hex(bits.substr(4, 4)) << " ";
 	}
 
-	delete buffer;
-
-	return 0;
-}
+*/
