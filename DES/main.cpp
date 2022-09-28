@@ -25,6 +25,26 @@ unsigned char* slice_blocks(unsigned char ER_xor_key[6]) {
 	return B;
 }
 
+unsigned char* convert_S(unsigned char B[8]) {
+	unsigned char* B_converted = new unsigned char[4];
+	memset(B_converted, 0, 4);
+	
+	unsigned char temp[8];
+	memset(temp, 0, 8);
+	for (int i = 0; i < 8; i++) {
+		int row = 0, column = 0;
+		row = (B[i] & 0b00100000) >> 4 | (B[i] & 0b00000001);	// определяем строку
+		column = (B[i] & 0b00011110) >> 1;	// и столбец
+		temp[i] = S[i][row][column];	// вычисляем число и записываем его
+	}
+	B_converted[0] = temp[0] << 4 | temp[1];	// объединяем числа в один байт
+	B_converted[1] = temp[2] << 4 | temp[3];
+	B_converted[2] = temp[4] << 4 | temp[5];
+	B_converted[3] = temp[6] << 4 | temp[7];
+
+	return B_converted;
+}
+
 // функция циклического смещения векторов C и D
 unsigned char* shift_CD(unsigned char CD[7], int iter) {
 	unsigned char* shifted_CD = new unsigned char[7];
@@ -142,6 +162,7 @@ int main() {
 
 	auto new_block = permutate_P(block);
 	auto new_2 = slice_blocks(block3);
+	auto new_3 = convert_S(new_2);
 	for (int i = 0; i < 8; i++) {
 		std::cout << new_2[i];
 	}
