@@ -31,6 +31,18 @@ unsigned char* permutate_key(unsigned char key_with_bits[8]) {
 	return perm_key;
 }
 
+unsigned char* generate_key_iter(unsigned char CD[7]) {
+	unsigned char* key_iter = new unsigned char[6];
+	memset(key_iter, 0, 6);
+	for (int i = 0; i < 48; i++) {
+		int offset_byte = (key_generate_table[i / 16][i % 16] - 1) / 8;	// смещение по байту
+		int offset_bit = (key_generate_table[i / 16][i % 16] - 1) % 8;	// смещение по биту
+		int bit = ((CD[offset_byte] << offset_bit) & 0b10000000);	// сохраняем бит
+		key_iter[i / 8] |= ((0b10000000 & bit) >> (i % 8));	// устанавливаем бит в текущую позицию
+	}
+	return key_iter;
+}
+
 unsigned char* shift_CD(unsigned char CD[7], int iter) {
 	unsigned char* shifted_CD = new unsigned char[7];
 	unsigned char C[4];
@@ -149,6 +161,8 @@ int main() {
 	for (int i = 0; i < 7; i++) {
 		std::cout << CD_1[i];
 	}
+
+	auto new_key = generate_key_iter(CD_1);
 
 	return 0;
 }
