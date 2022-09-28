@@ -145,37 +145,70 @@ unsigned char* add_key_bits(unsigned char key[7]) {
 	return key_with_bits;
 }
 
+unsigned char* Feistel_func(unsigned char R[4], unsigned char key[6]) {
+	auto expanded_R = permutate_E(R);	// расширяем R по матрице E
+	for (int i = 0; i < 6; i++) {
+		expanded_R[i] = expanded_R[i] ^ key[i];	// исключающее или с ключём
+	}
+
+	auto B = slice_blocks(expanded_R);	// преобразуем в блоки по 6 бит
+	auto converted_B = convert_S(B);	// получаем вектор 32 бит после преобразования через S
+
+	converted_B = permutate_P_small(converted_B);	// выполняем конечную перестановку
+
+	delete expanded_R;
+	delete B;
+
+	return converted_B;
+}
+
 int main() {
-	unsigned char block[8] = {
-		0b00000000, 0b00000000, 0b00000000, 0b00000000,
-		0b11111111, 0b11111111, 0b11111111, 0b11111111
-	};
+	unsigned char data[8] = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
+	unsigned char key[7] = { 'a', 'b', 'c', 'd', 'e', 'f', 'g' };
 
-	unsigned char block2[7] = {
-		0b10000010, 0b00000010, 0b00000010, 0b00001000,
-		0b00000010, 0b00000010, 0b00000010
-	};
+	auto permutate_data = permutate_P(data);	// первое преобразование P
+	auto key_with_bits = add_key_bits(key);		// ключ с битами чётности
+	auto CD = permutate_key(key_with_bits);		// вектор CD
 
-	unsigned char block3[6] = {
-		0b11111100, 0b00001111, 0b11000000, 0b11111100, 0b00001111, 0b11000000
-	};
+	// разбиваем блок на L и R
+	unsigned char L[4];
+	unsigned char R[4];
+	memcpy(L, permutate_data, 4);
+	memcpy(R, permutate_data + 4, 4);
+	unsigned char temp_R[4];	// буфер для перемещения значений между L и R
+	memcpy(temp_R, R, 4);
 
-	auto new_block = permutate_P(block);
-	auto new_2 = slice_blocks(block3);
-	auto new_3 = convert_S(new_2);
+	for (int i = 0; i < 16; i++) {
+		CD = shift_CD(CD, i);					// смещение CD
+		auto key_iter = generate_key_iter(CD);	// генерация ключа итерации
+
+		auto func_res = Feistel_func(R, key_iter);	// вычисление функции Фейстеля
+		for (int j = 0; j < 4; j++) {
+			R[j] = L[j] ^ func_res[j];	// исключающее или с функцией Фейстеля
+		}
+		memcpy(L, temp_R, 4);	// присваиваем L R-1
+		memcpy(temp_R, R, 4);	// запоминаем текущее R
+
+		delete key_iter;
+		delete func_res;
+	}
+
+	unsigned char C[8];		// склеиваем R и L
+	memcpy(C, R, 4);
+	memcpy(C + 4, L, 4);
+
+	// конечная перестановка permutated_C - зашифрованное сообщение
+	auto permutate_C = permutate_P_reverse(C);
+
 	for (int i = 0; i < 8; i++) {
-		std::cout << new_2[i];
+		std::cout << (int)permutate_C[i] << std::endl;
 	}
 
-	//auto bl = add_key_bits(block2);
+	delete permutate_data;
+	delete key_with_bits;
+	delete CD;
+	delete permutate_C;
 
-	//auto perm_key = (permutate_key(bl));
-	/*auto CD_1 = shift_CD(block2, 0);
-	for (int i = 0; i < 7; i++) {
-		std::cout << CD_1[i];
-	}
-
-	auto new_key = generate_key_iter(CD_1);*/
 
 	return 0;
 }
