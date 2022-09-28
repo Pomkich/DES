@@ -10,7 +10,7 @@ using namespace std;
 unsigned char* permutate_P(unsigned char block[8]) {
 	unsigned char* perm_block = new unsigned char[8];
 	memset(perm_block, 0, 8);
-	for (int i = 0; i < 64; i++) {
+	for (int i = 0; i < 64; i++) {	//P[i / 16][i % 16] -1 -> в таблице индексация от 1, поэтому -1
 		int offset_byte = (P[i / 16][i % 16] - 1) / 8;	// смещение по байту
 		int offset_bit = (P[i / 16][i % 16] - 1) % 8;	// смещение по биту
 		int bit = ((block[offset_byte] << offset_bit) & 0b10000000);	// сохраняем бит
@@ -29,6 +29,73 @@ unsigned char* permutate_key(unsigned char key_with_bits[8]) {
 		perm_key[i / 8] |= ((0b10000000 & bit) >> (i % 8));	// устанавливаем бит в текущую позицию
 	}
 	return perm_key;
+}
+
+unsigned char* shift_CD(unsigned char CD[7], int iter) {
+	unsigned char* shifted_CD = new unsigned char[7];
+	unsigned char C[4];
+	unsigned char D[4];
+	// разбиваем исходный вектор на 28 битные блоки
+	memcpy(C, CD, 4);
+	C[3] &= 0b11110000;
+	memcpy(D, CD + 3, 4);
+	D[0] &= 0b00001111;
+	// циклический сдвиг влево для C
+	if (shift_CD_table[iter] == 1) {
+		int save_bits[4] = { 0, 0, 0, 0 };
+		for (int i = 0; i < 4; i++)
+			save_bits[i] = C[i] & 0b10000000;
+		C[0] = C[0] << 1; C[0] |= (save_bits[1] >> 7);
+		C[1] = C[1] << 1; C[1] |= (save_bits[2] >> 7);
+		C[2] = C[2] << 1; C[2] |= (save_bits[3] >> 7);
+		C[3] = C[3] << 1; C[3] |= (save_bits[0] >> 3);
+	}
+	else {
+		int save_bits[4] = { 0, 0, 0, 0 };
+		for (int i = 0; i < 4; i++)
+			save_bits[i] = C[i] & 0b11000000;
+		C[0] = C[0] << 2; C[0] |= (save_bits[1] >> 6);
+		C[1] = C[1] << 2; C[1] |= (save_bits[2] >> 6);
+		C[2] = C[2] << 2; C[2] |= (save_bits[3] >> 6);
+		C[3] = C[3] << 2; C[3] |= (save_bits[0] >> 2);
+	}
+	// циклический сдвиг влево для D
+	if (shift_CD_table[iter] == 1) {
+		int save_bits[4] = { 0, 0, 0, 0 };
+		for (int i = 1; i < 4; i++)
+			save_bits[i] = D[i] & 0b10000000;
+		save_bits[0] = D[0] & 0b00001000;	// так как байт неровный, приходится делать так
+
+		D[0] = D[0] << 1; D[0] |= (save_bits[1] >> 7);
+		D[1] = D[1] << 1; D[1] |= (save_bits[2] >> 7);
+		D[2] = D[2] << 1; D[2] |= (save_bits[3] >> 7);
+		D[3] = D[3] << 1; D[3] |= (save_bits[0] >> 3);
+	}
+	else {
+		int save_bits[4] = { 0, 0, 0, 0 };
+		for (int i = 0; i < 4; i++)
+			save_bits[i] = D[i] & 0b11000000;
+		save_bits[0] = D[0] & 0b00001100;	// так как байт неровный, приходится делать так
+
+		D[0] = D[0] << 2; D[0] |= (save_bits[1] >> 6);
+		D[1] = D[1] << 2; D[1] |= (save_bits[2] >> 6);
+		D[2] = D[2] << 2; D[2] |= (save_bits[3] >> 6);
+		D[3] = D[3] << 2; D[3] |= (save_bits[0] >> 2);
+	}
+	
+	// собираем разделённый байт
+	char div_byte = 0;
+	div_byte = (C[3] & 0b11110000) | (D[0] & 0b00001111);
+	// склеиваем вектор
+	shifted_CD[0] = C[0];
+	shifted_CD[1] = C[1];
+	shifted_CD[2] = C[2];
+	shifted_CD[3] = div_byte;
+	shifted_CD[4] = D[1];
+	shifted_CD[5] = D[2];
+	shifted_CD[6] = D[3];
+
+	return shifted_CD;
 }
 
 int count_set_bits(unsigned char byte) {
@@ -69,15 +136,19 @@ int main() {
 	};
 
 	unsigned char block2[8] = {
-		0b00000000, 0b00000000, 0b00000000, 0b00000000,
-		0b11111111, 0b11111111, 0b11111111
+		0b10000010, 0b00000010, 0b00000010, 0b00001000,
+		0b00000010, 0b00000010, 0b00000010
 	};
 
 	auto new_block = permutate_P(block);
 
-	auto bl = add_key_bits(block2);
+	//auto bl = add_key_bits(block2);
 
-	auto perm_key = (permutate_key(bl));
+	//auto perm_key = (permutate_key(bl));
+	auto CD_1 = shift_CD(block2, 0);
+	for (int i = 0; i < 7; i++) {
+		std::cout << CD_1[i];
+	}
 
 	return 0;
 }
