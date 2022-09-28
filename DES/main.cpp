@@ -55,6 +55,22 @@ unsigned char* permutate_R(unsigned char R[4]) {
 	return ER;
 }
 
+unsigned char* slice_blocks(unsigned char ER_xor_key[6]) {
+	unsigned char* B = new unsigned char[8];
+	memset(B, 0, 8);
+	B[0] = (ER_xor_key[0] >> 2) & 0b00111111;
+	B[1] = ((ER_xor_key[0] & 0b00000011) << 4) | ((ER_xor_key[1] & 0b11110000) >> 4);
+	B[2] = ((ER_xor_key[1] & 0b00001111) << 2) | ((ER_xor_key[2] & 0b11000000) >> 6);
+	B[3] = (ER_xor_key[2] & 0b00111111);
+
+	B[4] = (ER_xor_key[3] >> 2) & 0b00111111;
+	B[5] = ((ER_xor_key[3] & 0b00000011) << 4) | ((ER_xor_key[4] & 0b11110000) >> 4);
+	B[6] = ((ER_xor_key[4] & 0b00001111) << 2) | ((ER_xor_key[5] & 0b11000000) >> 6);
+	B[7] = (ER_xor_key[5] & 0b00111111);
+
+	return B;
+}
+
 unsigned char* shift_CD(unsigned char CD[7], int iter) {
 	unsigned char* shifted_CD = new unsigned char[7];
 	unsigned char C[4];
@@ -164,12 +180,15 @@ int main() {
 		0b00000010, 0b00000010, 0b00000010
 	};
 
-	unsigned char block3[4] = {
-		0b10000010, 0b00000010, 0b00000010, 0b00001000,
+	unsigned char block3[6] = {
+		0b11111100, 0b00001111, 0b11000000, 0b11111100, 0b00001111, 0b11000000
 	};
 
 	auto new_block = permutate_P(block);
-	auto new_2 = permutate_R(block3);
+	auto new_2 = slice_blocks(block3);
+	for (int i = 0; i < 8; i++) {
+		std::cout << new_2[i];
+	}
 
 	//auto bl = add_key_bits(block2);
 
