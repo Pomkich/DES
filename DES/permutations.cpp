@@ -65,8 +65,8 @@ unsigned char* permutate_P_reverse(unsigned char RL[8]) {
 	unsigned char* C = new unsigned char[8];
 	memset(C, 0, 8);
 	for (int i = 0; i < 64; i++) {
-		int offset_byte = (P_small[i / 16][i % 16] - 1) / 8;	// смещение по байту
-		int offset_bit = (P_small[i / 16][i % 16] - 1) % 8;	// смещение по биту
+		int offset_byte = (P_reverse[i / 16][i % 16] - 1) / 8;	// смещение по байту
+		int offset_bit = (P_reverse[i / 16][i % 16] - 1) % 8;	// смещение по биту
 		int bit = ((RL[offset_byte] << offset_bit) & 0b10000000);	// сохраняем бит
 		C[i / 8] |= ((0b10000000 & bit) >> (i % 8));	// устанавливаем бит в текущую позицию
 	}

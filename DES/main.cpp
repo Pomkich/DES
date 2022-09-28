@@ -193,21 +193,21 @@ int main() {
 		delete func_res;
 	}
 
-	unsigned char C[8];		// склеиваем R и L
-	memcpy(C, R, 4);
-	memcpy(C + 4, L, 4);
+	unsigned char RL[8];		// склеиваем R и L
+	memcpy(RL, R, 4);
+	memcpy(RL + 4, L, 4);
 
 	// конечная перестановка permutated_C - зашифрованное сообщение
-	auto permutate_C = permutate_P_reverse(C);
+	auto C = permutate_P_reverse(RL);
 
 	for (int i = 0; i < 8; i++) {
-		std::cout << (int)permutate_C[i] << std::endl;
+		std::cout << C[i] << " ";
 	}
 
 	delete permutate_data;
 	delete key_with_bits;
 	delete CD;
-	delete permutate_C;
+	delete C;
 
 
 	return 0;
