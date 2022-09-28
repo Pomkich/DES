@@ -43,6 +43,18 @@ unsigned char* generate_key_iter(unsigned char CD[7]) {
 	return key_iter;
 }
 
+unsigned char* permutate_R(unsigned char R[4]) {
+	unsigned char* ER = new unsigned char[6];
+	memset(ER, 0, 6);
+	for (int i = 0; i < 48; i++) {
+		int offset_byte = (E[i / 6][i % 6] - 1) / 8;	// смещение по байту
+		int offset_bit = (E[i / 6][i % 6] - 1) % 8;	// смещение по биту
+		int bit = ((R[offset_byte] << offset_bit) & 0b10000000);	// сохраняем бит
+		ER[i / 8] |= ((0b10000000 & bit) >> (i % 8));	// устанавливаем бит в текущую позицию
+	}
+	return ER;
+}
+
 unsigned char* shift_CD(unsigned char CD[7], int iter) {
 	unsigned char* shifted_CD = new unsigned char[7];
 	unsigned char C[4];
@@ -147,22 +159,27 @@ int main() {
 		0b11111111, 0b11111111, 0b11111111, 0b11111111
 	};
 
-	unsigned char block2[8] = {
+	unsigned char block2[7] = {
 		0b10000010, 0b00000010, 0b00000010, 0b00001000,
 		0b00000010, 0b00000010, 0b00000010
 	};
 
+	unsigned char block3[4] = {
+		0b10000010, 0b00000010, 0b00000010, 0b00001000,
+	};
+
 	auto new_block = permutate_P(block);
+	auto new_2 = permutate_R(block3);
 
 	//auto bl = add_key_bits(block2);
 
 	//auto perm_key = (permutate_key(bl));
-	auto CD_1 = shift_CD(block2, 0);
+	/*auto CD_1 = shift_CD(block2, 0);
 	for (int i = 0; i < 7; i++) {
 		std::cout << CD_1[i];
 	}
 
-	auto new_key = generate_key_iter(CD_1);
+	auto new_key = generate_key_iter(CD_1);*/
 
 	return 0;
 }
