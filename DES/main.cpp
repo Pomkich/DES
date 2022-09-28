@@ -10,8 +10,8 @@ using namespace std;
 
 // функция разделяет результат сложения E(r - 1) с ключём на 8 6 битовых блоков
 unsigned char* slice_blocks(unsigned char ER_xor_key[6]) {
-	unsigned char* B = new unsigned char[8];
-	memset(B, 0, 8);
+	unsigned char* B = new unsigned char[8];	// каждый блок представлен 6 битами,
+	memset(B, 0, 8);							// но все они записаны в один байт
 	B[0] = (ER_xor_key[0] >> 2) & 0b00111111;
 	B[1] = ((ER_xor_key[0] & 0b00000011) << 4) | ((ER_xor_key[1] & 0b11110000) >> 4);
 	B[2] = ((ER_xor_key[1] & 0b00001111) << 2) | ((ER_xor_key[2] & 0b11000000) >> 6);

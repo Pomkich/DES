@@ -48,3 +48,15 @@ unsigned char* permutate_R(unsigned char R[4]) {
 	}
 	return ER;
 }
+
+unsigned char* permutate_P_small(unsigned char B[4]) {
+	unsigned char* BP = new unsigned char[4];
+	memset(BP, 0, 4);
+	for (int i = 0; i < 32; i++) {
+		int offset_byte = (P_small[i / 8][i % 8] - 1) / 8;	// смещение по байту
+		int offset_bit = (P_small[i / 8][i % 8] - 1) % 8;	// смещение по биту
+		int bit = ((B[offset_byte] << offset_bit) & 0b10000000);	// сохраняем бит
+		BP[i / 8] |= ((0b10000000 & bit) >> (i % 8));	// устанавливаем бит в текущую позицию
+	}
+	return BP;
+}
