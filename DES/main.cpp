@@ -55,6 +55,7 @@ unsigned char* permutate_R(unsigned char R[4]) {
 	return ER;
 }
 
+// функция разделяет результат сложения E(r - 1) с ключём на 8 6 битовых блоков
 unsigned char* slice_blocks(unsigned char ER_xor_key[6]) {
 	unsigned char* B = new unsigned char[8];
 	memset(B, 0, 8);
@@ -71,6 +72,7 @@ unsigned char* slice_blocks(unsigned char ER_xor_key[6]) {
 	return B;
 }
 
+// функция циклического смещения векторов C и D
 unsigned char* shift_CD(unsigned char CD[7], int iter) {
 	unsigned char* shifted_CD = new unsigned char[7];
 	unsigned char C[4];
@@ -147,6 +149,7 @@ int count_set_bits(unsigned char byte) {
 	return set;
 }
 
+// функция добавляет биты чётности к исходному ключу
 unsigned char* add_key_bits(unsigned char key[7]) {
 	unsigned char* key_with_bits = new unsigned char[8];
 	memcpy(key_with_bits, key, 7);
