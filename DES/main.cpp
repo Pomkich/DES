@@ -11,7 +11,7 @@ using namespace std;
 // функция разделяет результат сложения E(r - 1) с ключём на 8 6 битовых блоков
 unsigned char* slice_blocks(unsigned char ER_xor_key[6]) {
 	unsigned char* B = new unsigned char[8];	// каждый блок представлен 6 битами,
-	memset(B, 0, 8);							// но все они записаны в один байт
+	memset(B, 0, 8);							// но каждый представлен одним байтом
 	B[0] = (ER_xor_key[0] >> 2) & 0b00111111;
 	B[1] = ((ER_xor_key[0] & 0b00000011) << 4) | ((ER_xor_key[1] & 0b11110000) >> 4);
 	B[2] = ((ER_xor_key[1] & 0b00001111) << 2) | ((ER_xor_key[2] & 0b11000000) >> 6);
@@ -111,38 +111,6 @@ unsigned char* shift_CD(unsigned char CD[7], int iter) {
 	shifted_CD[6] = D[3];
 
 	return shifted_CD;
-}
-
-int count_set_bits(unsigned char byte) {
-	int set = 0;
-	for (int i = 0; i < 8; i++) {
-		set += byte % 2;
-		byte /= 2;
-	}
-	return set;
-}
-
-// функция добавляет биты чётности к исходному ключу
-unsigned char* add_key_bits(unsigned char key[7]) {
-	unsigned char* key_with_bits = new unsigned char[8];
-	memcpy(key_with_bits, key, 7);
-	memset(key_with_bits + 7, 0, 1);
-	for (int i = 0; i < 8; i++) {
-		char byte = key_with_bits[i] & 0b11111110;
-		int save_bit = key_with_bits[i] & 0b00000001;
-		if (count_set_bits(byte) % 2 != 0) {	// если число единиц нечётно ->
-			byte |= 0b00000001;					// добавляем до чётности
-		}
-		key_with_bits[i] = byte;	// сохраняем байт
-		// смещение остальных байтов
-		for (int j = i + 1; j < 8; j++) {
-			int temp_bit = key_with_bits[j] & 0b00000001;
-			key_with_bits[j] = key_with_bits[j] >> 1;
-			key_with_bits[j] |= (save_bit << 7);
-			save_bit = temp_bit;
-		}
-	}
-	return key_with_bits;
 }
 
 unsigned char* Feistel_func(unsigned char R[4], unsigned char key[6]) {
@@ -366,3 +334,35 @@ int main() {
 
 	return 0;
 }
+
+/*int count_set_bits(unsigned char byte) {
+	int set = 0;
+	for (int i = 0; i < 8; i++) {
+		set += byte % 2;
+		byte /= 2;
+	}
+	return set;
+}
+
+// функция добавляет биты чётности к исходному ключу
+unsigned char* add_key_bits(unsigned char key[7]) {
+	unsigned char* key_with_bits = new unsigned char[8];
+	memcpy(key_with_bits, key, 7);
+	memset(key_with_bits + 7, 0, 1);
+	for (int i = 0; i < 8; i++) {
+		char byte = key_with_bits[i] & 0b11111110;
+		int save_bit = key_with_bits[i] & 0b00000001;
+		if (count_set_bits(byte) % 2 != 0) {	// если число единиц нечётно ->
+			byte |= 0b00000001;					// добавляем до чётности
+		}
+		key_with_bits[i] = byte;	// сохраняем байт
+		// смещение остальных байтов
+		for (int j = i + 1; j < 8; j++) {
+			int temp_bit = key_with_bits[j] & 0b00000001;
+			key_with_bits[j] = key_with_bits[j] >> 1;
+			key_with_bits[j] |= (save_bit << 7);
+			save_bit = temp_bit;
+		}
+	}
+	return key_with_bits;
+}*/
