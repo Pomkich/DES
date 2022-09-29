@@ -258,14 +258,65 @@ unsigned char* decrypt_block(unsigned char data[8], unsigned char key[8]) {
 	return decrypted_data;
 }
 
+void encrypt_file(std::string file_name, std::string str_key) {
+	unsigned char key[8];
+	std::ifstream file(file_name);
+	size_t added_bytes = 0;
+	size_t file_length = 0;
+	char* bytes;
+
+	// копируем ключ в специальный массив
+	memset(key, 0, 8);
+	for (int i = 0; i < 8; i++)
+		key[i] = str_key[i];
+
+	// получаем длину файла
+	file.seekg(0, std::ios::end);
+	file_length = file.tellg();
+	file.seekg(0, std::ios::beg);
+
+	// собираем байты в массив
+	if (file_length % 8 == 0) {		// если кратно 8, то дополнять не нужно
+		added_bytes = 0;
+		bytes = new char[file_length];
+	}
+	else {	// (8 - (length % 8)) - чтобы дополнить 64 битного блока
+		added_bytes = (8 - (file_length % 8));
+		bytes = new char[file_length + added_bytes];
+		memset(bytes + file_length, 0, added_bytes);	// заполняем лишнее пространство нулями
+	}
+	// читаем файл
+	file.read(bytes, file_length);
+
+	std::ofstream encrypted_file("enrypted_" + file_name);
+
+	// начинаем кодировать блоками
+	for (int i = 0; i < (file_length + added_bytes) / 8; i++) {
+		unsigned char block[8];
+		int byte_offset = 0;
+		// копируем следующий блок и конвертируем байты в байты без знака
+		for (int j = i * 8; j < (i + 1) * 8; j++) {
+			block[byte_offset] = (unsigned char)bytes[j];
+			byte_offset++;
+		}
+		// кодируем блок
+		auto encrypted_block = encrypt_block(block, key);
+		// записываем его в файл
+		for (int j = 0; j < 8; j++)
+			encrypted_file << encrypted_block[j];
+
+		delete encrypted_block;
+	}
+
+	std::cout << "file enctyped" << std::endl;
+}
+
+
 int main() {
 	unsigned char data[8] = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
 	unsigned char key[8] = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
 
-	auto encrypted = encrypt_block(data, key);
-	std::cout << std::endl;
-	auto decrypted = decrypt_block(encrypted, key);
-
+	encrypt_file("test.txt", "abcdefgh");
 
 	return 0;
 }
