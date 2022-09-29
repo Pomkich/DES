@@ -326,11 +326,34 @@ void decrypt_file(std::string file_name, std::string str_key) {
 
 
 int main() {
-	unsigned char data[8] = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
-	unsigned char key[8] = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
-
-	encrypt_file("test.txt", "abcdefgh");
-	decrypt_file("encrypted_test.txt", "abcdefgh");
+	while (true) {
+		std::cout << "enter 'e' to encrypt file, 'd' to decrypt, 'q' to exit" << std::endl;
+		std::string file_name;
+		std::string key;
+		char cmd = 0;
+		std::cin >> cmd;
+		if (cmd == 'e') {
+			std::cout << "which file to encrypt?: ";
+			std::cin >> file_name;
+			std::cout << "enter key: ";
+			std::cin >> key;
+			encrypt_file(file_name, key);
+		}
+		else if (cmd == 'd') {
+			std::cout << "which file to decrypt?: ";
+			std::cin >> file_name;
+			std::cout << "enter key: ";
+			std::cin >> key;
+			decrypt_file(file_name, key);
+		}
+		else if (cmd == 'q') {
+			std::cout << "exit" << std::endl;
+			break;
+		}
+		else {
+			std::cout << "wrong command" << std::endl;
+		}
+	}
 
 	return 0;
 }
