@@ -162,13 +162,9 @@ unsigned char* Feistel_func(unsigned char R[4], unsigned char key[6]) {
 	return converted_B;
 }
 
-int main() {
-	unsigned char data[8] = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
-	unsigned char key[7] = { 'a', 'b', 'c', 'd', 'e', 'f', 'g' };
-
+unsigned char* encrypt_block(unsigned char data[8], unsigned char key[8]) {
 	auto permutate_data = permutate_P(data);	// первое преобразование P
-	auto key_with_bits = add_key_bits(key);		// ключ с битами чётности
-	auto CD = permutate_key(key_with_bits);		// вектор CD
+	auto CD = permutate_key(key);		// вектор CD
 
 	// разбиваем блок на L и R
 	unsigned char L[4];
@@ -197,96 +193,79 @@ int main() {
 	memcpy(RL, R, 4);
 	memcpy(RL + 4, L, 4);
 
-	// конечная перестановка permutated_C - зашифрованное сообщение
-	auto C = permutate_P_reverse(RL);
+	// конечная перестановка C - зашифрованное сообщение
+	auto encrypted_data = permutate_P_reverse(RL);
 
 	for (int i = 0; i < 8; i++) {
-		std::cout << C[i] << " ";
+		std::cout << (int)encrypted_data[i] << " ";
 	}
 
 	delete permutate_data;
-	delete key_with_bits;
 	delete CD;
-	delete C;
+
+	return encrypted_data;
+}
+
+unsigned char* decrypt_block(unsigned char data[8], unsigned char key[8]) {
+	auto permutate_data = permutate_P(data);	// первое преобразование P
+	auto CD = permutate_key(key);		// вектор CD
+
+	// разбиваем блок на L и R
+	unsigned char L[4];
+	unsigned char R[4];
+	memcpy(L, permutate_data, 4);
+	memcpy(R, permutate_data + 4, 4);
+	unsigned char temp_R[4];	// буфер для перемещения значений между L и R
+	memcpy(temp_R, R, 4);
+
+	// предварительно генерируем ключи от 0 до 16
+	unsigned char* keys[16];
+	for (int i = 0; i < 16; i++) {
+		CD = shift_CD(CD, i);
+		keys[i] = new unsigned char[6];
+		memset(keys[i], 0, 6);
+		keys[i] = generate_key_iter(CD);
+	}
+
+	for (int i = 15; i >= 0; i--) {
+		// используем ранее сгенерированные ключи
+		auto func_res = Feistel_func(R, keys[i]);	// вычисление функции Фейстеля
+		for (int j = 0; j < 4; j++) {
+			R[j] = L[j] ^ func_res[j];	// исключающее или с функцией Фейстеля
+		}
+		memcpy(L, temp_R, 4);	// присваиваем L R-1
+		memcpy(temp_R, R, 4);	// запоминаем текущее R
+
+		delete func_res;
+	}
+
+	unsigned char RL[8];		// склеиваем R и L
+	memcpy(RL, R, 4);
+	memcpy(RL + 4, L, 4);
+
+	// конечная перестановка C - расшифрованное сообщение
+	auto decrypted_data = permutate_P_reverse(RL);
+
+	for (int i = 0; i < 8; i++) {
+		std::cout << (int)decrypted_data[i] << " ";
+	}
+
+	for (int i = 0; i < 16; i++)
+		delete keys[i];
+	delete permutate_data;
+	delete CD;
+
+	return decrypted_data;
+}
+
+int main() {
+	unsigned char data[8] = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
+	unsigned char key[8] = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
+
+	auto encrypted = encrypt_block(data, key);
+	std::cout << std::endl;
+	auto decrypted = decrypt_block(encrypted, key);
 
 
 	return 0;
 }
-
-/*
-// добавление битов четности в исходный ключ
-void add_key_bits(std::string& key) {
-	for (int i = 0; i < 8; i++) {
-		auto substr = key.substr(i * 8, 7);
-		if (std::count(substr.begin(), substr.end(), '1') % 2 != 1)
-			key.insert(key.begin() + (i * 8) + 7, '1');
-		else
-			key.insert(key.begin() + (i * 8) + 7, '0');
-	}
-}
-
-// первая перестановка исходного блока текста
-std::string permutate_P(std::string bits) {
-	std::string perm_bits(block_size, '0');
-	for (int i = 0; i < 4; i++) {
-		for (int j = 0; j < 16; j++) {
-			perm_bits[i * 16 + j] = bits[P[i][j]];
-		}
-	}
-	return perm_bits;
-}
-
-std::string permutate_key(std::string key) {
-	std::string perm_key(start_key_size, '0');
-	for (int i = 0; i < 4; i++) {
-		for (int j = 0; j < 14; j++) {
-			perm_key[i * 14 + j] = key[key_perm_table[i][j]];
-		}
-	}
-	return perm_key;
-}
-
-
-*/
-
-/*	// read file
-std::ifstream infile("test.txt");
-
-	//get length of file
-	infile.seekg(0, std::ios::end);
-	size_t length = infile.tellg();
-	infile.seekg(0, std::ios::beg);
-
-	char* buffer = new char[length];
-
-	//read file
-	infile.read(buffer, length);
-
-	std::cout << length << std::endl;
-
-	for (int i = 0; i < length; i++) {
-		if (i == 16) std::cout << std::endl;
-		auto bits = byte_bin(buffer[i]);
-		std::cout << bin_hex(bits.substr(0, 4)) << bin_hex(bits.substr(4, 4)) << " ";
-	}
-
-*/
-
-/*char bin_hex(std::string bits) {
-	static std::map<std::string, char> hex_bits = {	// for better perfomance static
-		{"0000", '0'}, {"0001", '1'}, {"0010", '2'}, {"0011", '3'},
-		{"0100", '4'}, {"0101", '5'}, {"0110", '6'}, {"0111", '7'},
-		{"1000", '8'}, {"1001", '9'}, {"1010", 'A'}, {"1011", 'B'},
-		{"1100", 'C'}, {"1101", 'D'}, {"1110", 'E'}, {"1111", 'F'},
-	};
-	return hex_bits[bits];
-}
-
-std::string byte_bin(unsigned char ch) {
-	std::string bits = "";
-	for (int i = 0; i < 8; i++) {
-		char bit = ((bool)(ch << i & 0b10000000) + '0');
-		bits.push_back(bit);
-	}
-	return bits;
-}*/
