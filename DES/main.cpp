@@ -220,7 +220,7 @@ unsigned char* decrypt_block(unsigned char data[8], unsigned char key[8]) {
 
 void encrypt_file(std::string file_name, std::string str_key) {
 	unsigned char key[8];
-	std::ifstream file(file_name);
+	std::ifstream file(file_name, std::ios::binary);
 	size_t added_bytes = 0;
 	size_t file_length = 0;
 	char* bytes;
@@ -248,7 +248,7 @@ void encrypt_file(std::string file_name, std::string str_key) {
 	// читаем файл
 	file.read(bytes, file_length);
 
-	std::ofstream encrypted_file("encrypted_" + file_name);
+	std::ofstream encrypted_file("encrypted_" + file_name, std::ios::binary);
 
 	// начинаем кодировать блоками
 	for (int i = 0; i < (file_length + added_bytes) / 8; i++) {
@@ -261,9 +261,11 @@ void encrypt_file(std::string file_name, std::string str_key) {
 		}
 		// кодируем блок
 		auto encrypted_block = encrypt_block(block, key);
+
 		// записываем его в файл
-		for (int j = 0; j < 8; j++)
+		for (int j = 0; j < 8; j++) {
 			encrypted_file << encrypted_block[j];
+		}
 
 		delete encrypted_block;
 	}
@@ -273,7 +275,7 @@ void encrypt_file(std::string file_name, std::string str_key) {
 
 void decrypt_file(std::string file_name, std::string str_key) {
 	unsigned char key[8];
-	std::ifstream file(file_name);
+	std::ifstream file(file_name, std::ios::binary);
 	size_t added_bytes = 0;
 	size_t file_length = 0;
 	char* bytes;
@@ -301,7 +303,7 @@ void decrypt_file(std::string file_name, std::string str_key) {
 	// читаем файл
 	file.read(bytes, file_length);
 
-	std::ofstream dectyped_file("decrypted_" + file_name);
+	std::ofstream dectyped_file("decrypted_" + file_name, std::ios::binary);
 
 	// начинаем кодировать блоками
 	for (int i = 0; i < (file_length + added_bytes) / 8; i++) {
