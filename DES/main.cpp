@@ -5,6 +5,8 @@
 #include <bitset>
 #include "permutations.h"
 #include "constants.h"
+#include <chrono>
+#include <thread>
 
 using namespace std;
 
@@ -218,17 +220,18 @@ unsigned char* decrypt_block(unsigned char data[8], unsigned char key[8]) {
 	return decrypted_data;
 }
 
-void encrypt_file(std::string file_name, std::string str_key) {
+void encrypt_file(std::string file_name, std::string key_file_name) {
 	unsigned char key[8];
 	std::ifstream file(file_name, std::ios::binary);
+	std::ifstream key_file(key_file_name);
 	size_t added_bytes = 0;
 	size_t file_length = 0;
 	char* bytes;
 
 	// копируем ключ в специальный массив
-	memset(key, 0, 8);
-	for (int i = 0; i < 8; i++)
-		key[i] = str_key[i];
+	for (int i = 0; i < 8; i++) {
+		key_file >> key[i];
+	}
 
 	// получаем длину файла
 	file.seekg(0, std::ios::end);
@@ -273,17 +276,18 @@ void encrypt_file(std::string file_name, std::string str_key) {
 	std::cout << "file encryped" << std::endl;
 }
 
-void decrypt_file(std::string file_name, std::string str_key) {
+void decrypt_file(std::string file_name, std::string key_file_name) {
 	unsigned char key[8];
 	std::ifstream file(file_name, std::ios::binary);
+	std::ifstream key_file(key_file_name);
 	size_t added_bytes = 0;
 	size_t file_length = 0;
 	char* bytes;
 
 	// копируем ключ в специальный массив
-	memset(key, 0, 8);
-	for (int i = 0; i < 8; i++)
-		key[i] = str_key[i];
+	for (int i = 0; i < 8; i++) {
+		key_file >> key[i];
+	}
 
 	// получаем длину файла
 	file.seekg(0, std::ios::end);
@@ -337,14 +341,17 @@ int main() {
 		if (cmd == 'e') {
 			std::cout << "which file to encrypt?: ";
 			std::cin >> file_name;
-			std::cout << "enter key: ";
+			std::cout << "enter name of file key: ";
 			std::cin >> key;
+			std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 			encrypt_file(file_name, key);
+			std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+			std::cout << "Encryption time: " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << " seconds" << std::endl;
 		}
 		else if (cmd == 'd') {
 			std::cout << "which file to decrypt?: ";
 			std::cin >> file_name;
-			std::cout << "enter key: ";
+			std::cout << "enter name of file key: ";
 			std::cin >> key;
 			decrypt_file(file_name, key);
 		}
@@ -359,35 +366,3 @@ int main() {
 
 	return 0;
 }
-
-/*int count_set_bits(unsigned char byte) {
-	int set = 0;
-	for (int i = 0; i < 8; i++) {
-		set += byte % 2;
-		byte /= 2;
-	}
-	return set;
-}
-
-// функция добавляет биты чётности к исходному ключу
-unsigned char* add_key_bits(unsigned char key[7]) {
-	unsigned char* key_with_bits = new unsigned char[8];
-	memcpy(key_with_bits, key, 7);
-	memset(key_with_bits + 7, 0, 1);
-	for (int i = 0; i < 8; i++) {
-		char byte = key_with_bits[i] & 0b11111110;
-		int save_bit = key_with_bits[i] & 0b00000001;
-		if (count_set_bits(byte) % 2 != 0) {	// если число единиц нечётно ->
-			byte |= 0b00000001;					// добавляем до чётности
-		}
-		key_with_bits[i] = byte;	// сохраняем байт
-		// смещение остальных байтов
-		for (int j = i + 1; j < 8; j++) {
-			int temp_bit = key_with_bits[j] & 0b00000001;
-			key_with_bits[j] = key_with_bits[j] >> 1;
-			key_with_bits[j] |= (save_bit << 7);
-			save_bit = temp_bit;
-		}
-	}
-	return key_with_bits;
-}*/
